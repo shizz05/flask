@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body>
+  <div class="bg-overlay"></div>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="hamburger" onclick="toggleHamburgerMenu()">☰</div>
+    <h1>ADMIN</h1>
+  </div>
+
+  <!-- Side Menu -->
+  <div class="side-menu" id="sideMenu">
+    <button class="close-btn" onclick="toggleHamburgerMenu()">✕</button>
+    <button class="update-btn">UPDATE</button>
+    <button class="delete-btn">DELETE</button>
+    <button class="upload-btn">UPLOAD</button>
+    <button class="access-btn" onclick="toggleAccess()">ACCESS</button>
+    <button class="access-btn" onclick="toggleSecurity()">SECURITY</button>
+    <button class="export-btn">EXPORT</button>
+  </div>
+
+  <!-- Admin Panel Content -->
+  <div class="panel-container">
+    <div class="main-content">
+      <!-- Left Panel -->
+      <div class="left-panel">
+        <p class="label">Compound Name</p>
+        <input type="text" class="code-line" />
+
+        <p class="label">Category</p>
+        <select class="dropdown">
+          <option value="">--Select--</option>
+          <option value="PCR">PCR</option>
+          <option value="TBR">TBR</option>
+          <option value="TBB">TBB</option>
+          <option value="OHT">OHT</option>
+          <option value="2W">2W</option>
+        </select>
+        <div class="display-box">Selected Category:</div>
+
+        <p class="label">Density</p>
+        <input type="text" class="code-line" placeholder="Enter Density" />
+
+        <p class="label">Model</p>
+        <select class="dropdown">
+          <option value="">--Select--</option>
+          <option value="Hyperplastic">Hyperplastic</option>
+          <option value="Viscoplastic">Viscoplastic</option>
+        </select>
+        <div class="display-box">Selected Model:</div>
+
+        <p class="label">Reduced Polynomial (N)</p>
+        <select class="dropdown">
+          <option value="">--Select N--</option>
+          <option value="1">C10, D1</option>
+          <option value="2">C10, C20, D1, D2</option>
+          <option value="3">C10, C20, C30, D1, D2, D3</option>
+        </select>
+
+        <button class="submit-btn">SUBMIT</button>
+      </div>
+
+      <!-- Right Panel -->
+      <div class="right-panel">
+        <div class="report">
+          <div class="report-details">
+            <p><strong>Compound Name:</strong></p>
+            <p><strong>Category:</strong></p>
+            <p><strong>Density:</strong></p>
+            <p><strong>Model:</strong></p>
+          </div>
+          <div class="graph-box">
+            <p class="graph-label">GRAPH</p>
+            <div class="graph-placeholder">[Graph Area]</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Access Form -->
+  <div class="access-container" id="accessContainer">
+    <form action="{{ url_for('add_admin') }}" method="POST">
+      <p class="label">User Email ID</p>
+      <input type="email" name="email" class="code-line" placeholder="Enter Email (e.g. name@apollotyres.com)" required pattern="^[a-zA-Z0-9._%+-]+@apollotyres\.com$" />
+
+      <p class="label">Password</p>
+      <input type="password" name="password" class="code-line" placeholder="Enter Password" required />
+
+      <button type="submit" class="submit-btn">SUBMIT</button>
+    </form>
+  </div>
+
+  <!-- Security Update Form -->
+  <div class="access-container" id="securityContainer">
+    <form action="{{ url_for('admin_security_update') }}" method="POST">
+      <p class="label">New Registration Passcode</p>
+      <input type="text" name="new_passcode" class="code-line" placeholder="Enter new passcode" required />
+
+      <hr style="margin: 20px 0; border-color: #777;" />
+
+      <p class="label">Current Password</p>
+      <input type="password" name="current_password" class="code-line" placeholder="Enter current password" required />
+
+      <p class="label">New Password</p>
+      <input type="password" name="new_password" class="code-line" placeholder="Enter new password" required />
+
+      <p class="label">Confirm New Password</p>
+      <input type="password" name="confirm_password" class="code-line" placeholder="Re-enter new password" required />
+
+      <button type="submit" class="submit-btn">UPDATE SECURITY</button>
+    </form>
+  </div>
+
+  <script>
+    function toggleAccess() {
+      const container = document.getElementById('accessContainer');
+      container.style.display = container.style.display === 'none' || container.style.display === '' ? 'block' : 'none';
+    }
+
+    function toggleSecurity() {
+      const container = document.getElementById('securityContainer');
+      container.style.display = container.style.display === 'none' || container.style.display === '' ? 'block' : 'none';
+    }
+
+    function toggleHamburgerMenu() {
+      const menu = document.getElementById('sideMenu');
+      menu.classList.toggle('active');
+    }
+  </script>
+</body>
+</html>

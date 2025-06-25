@@ -1,27 +1,35 @@
-body {
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap");
+
+* {
   margin: 0;
   padding: 0;
-  font-family: Georgia, serif;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Georgia', serif;
   background: #b4b4b4;
   position: relative;
-  height: 100vh;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
 .bg-overlay {
-  background-image: url('img2.png');
+  background-image: url('../images/img2.png');
   background-size: contain;
   background-position: bottom;
   background-repeat: no-repeat;
   opacity: 0.1;
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
+  inset: 0;
   z-index: 0;
 }
 
 .header {
-  padding: 40px 60px 0;
+  padding: 40px 20px 0;
   position: relative;
   z-index: 1;
+  text-align: center;
 }
 
 .header h1 {
@@ -31,14 +39,16 @@ body {
 }
 
 .panel-container {
-  margin: 30px 60px;
-  padding: 30px;
+  margin: 30px auto;
+  padding: 30px 20px;
   border: 1px solid #9aa9bf;
   background-color: rgba(0, 0, 0, 0.9);
-  position: relative;
-  z-index: 1;
   border-radius: 12px;
   color: white;
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  width: 95%;
 }
 
 .menu {
@@ -59,26 +69,24 @@ body {
 
 .main-content {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 40px;
 }
 
 .left-panel {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  width: 45%;
+  flex: 1 1 100%;
+  max-width: 100%;
 }
 
 .right-panel {
-  width: 50%;
+  flex: 1 1 100%;
+  max-width: 100%;
   display: flex;
-  justify-content: flex-end;
-  align-items: flex-start;
+  justify-content: center;
 }
 
 .label {
-  font-size: 20px;
+  font-size: 18px;
   margin: 20px 0 8px;
 }
 
@@ -108,14 +116,13 @@ body {
 }
 
 .submit-btn {
-  margin-top: 30px;
+  margin-top: 20px;
   padding: 10px 20px;
   font-size: 14px;
   border: 1px dashed #ffffff;
   background: transparent;
   color: white;
   cursor: pointer;
-  align-self: flex-start;
 }
 
 .report {
@@ -124,24 +131,30 @@ body {
   font-size: 16px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 10px;
-  min-width: 100%;
-  min-height: 700px;
-  overflow-y: auto;
   color: white;
+  width: 100%;
 }
 
 .report-heading {
   font-size: 24px;
-  padding-bottom: 5px;
+  padding-bottom: 10px;
+  text-align: center;
+}
+
+.report-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .report-details {
-  flex: 2;
+  font-size: 16px;
 }
 
 .graph-box {
-  width: 400px;
-  height: 400px;
+  width: 100%;
+  max-width: 400px;
+  height: 300px;
   border: 1px dashed white;
   display: flex;
   align-items: center;
@@ -150,5 +163,28 @@ body {
   border-radius: 8px;
   color: white;
   font-size: 14px;
+  margin: 0 auto;
   text-align: center;
+}
+
+/* Responsive Breakpoints */
+@media (min-width: 768px) {
+  .left-panel {
+    flex: 1 1 45%;
+    max-width: 45%;
+  }
+
+  .right-panel {
+    flex: 1 1 50%;
+    max-width: 50%;
+  }
+
+  .report-inner {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .graph-box {
+    height: 400px;
+  }
 }
