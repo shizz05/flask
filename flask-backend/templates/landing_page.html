@@ -16,15 +16,20 @@
   <nav class="buttons">
     <div class="hamburger" onclick="toggleMenu()">☰</div>
     <div class="menu-items">
-      <form action="{{ url_for('admin_login') }}">
-        <button type="submit">ADMIN</button>
+
+      <!-- Admin Button -->
+      <form action="{{ url_for('admin_login') }}" method="get">
+        <button type="submit">Admin</button>
       </form>
-       <form action="{{ url_for('user_login') }}">
-        <button type="submit">USER</button>
+
+      <!-- User Button -->
+      <form action="{{ url_for('user_login') }}" method="get">
+        <button type="submit">User</button>
       </form>
+
     </div>
   </nav>
-
+</body>
   <div class="scrolling-vertical">
     <div class="scrolling-inner">
       <p>Revolutionizing Tyres Through Simulation.Apollo Tyres Global r&d</p>
@@ -33,7 +38,7 @@
       <p>Revolutionizing Tyres Through Simulation.Apollo Tyres Global r&d</p>
       <p>Revolutionizing Tyres Through Simulation.Apollo Tyres Global r&d</p>
       <p>Revolutionizing Tyres Through Simulation.Apollo Tyres Global r&d</p>
-      <p>Revolutionizing Tyres Through Simulation.Apollo Tyres Global r&d</p>
+      <p>Revolutionizing Tyres Through Simulation.Apollo Tyres Global r&d</p>                          
       <p>Revolutionizing Tyres Through Simulation.Apollo Tyres Global r&d</p>
       <p>Revolutionizing Tyres Through Simulation.Apollo Tyres Global r&d</p>
       <p>Revolutionizing Tyres Through Simulation.Apollo Tyres Global r&d</p>

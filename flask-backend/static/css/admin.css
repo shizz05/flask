@@ -248,3 +248,18 @@ body {
   border: none;
   border-top: 1px solid #666;
 }
+
+select.dropdown {
+  background-color: #1a1a1a;   /* Background color */
+  color: #ffffff;              /* Text color */
+  border: 1px solid #444;      /* Border */
+  padding: 8px;
+  border-radius: 5px;
+  width: 100%;
+}
+
+/* Optional: style dropdown options */
+select.dropdown option {
+  background-color: #1a1a1a;
+  color: #ffffff;
+}

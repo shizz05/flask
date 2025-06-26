@@ -5,6 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Panel</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+  <style>
+    .autocomplete-box {
+      position: absolute;
+      background: #000000;
+      border: 1px solid #4a4646;
+      max-height: 150px;
+      overflow-y: auto;
+      z-index: 1000;
+      width: calc(100% - 40px);
+    }
+    .autocomplete-box div {
+      padding: 8px;
+      cursor: pointer;
+    }
+    .autocomplete-box div:hover {
+      background: #5c5b5b;
+    }
+    .left-panel {
+      position: relative;
+    }
+  </style>
 </head>
 <body>
   <div class="bg-overlay"></div>
@@ -20,7 +41,11 @@
     <button class="close-btn" onclick="toggleHamburgerMenu()">✕</button>
     <button class="update-btn">UPDATE</button>
     <button class="delete-btn">DELETE</button>
-    <button class="upload-btn">UPLOAD</button>
+    <form action="{{ url_for('upload_inc_file') }}" method="POST" enctype="multipart/form-data" style="margin-top: 20px;">
+      <label for="inc_file"><strong>UPLOAD</strong></label><br>
+      <input type="file" id="inc_file" name="inc_file" accept=".inc" required><br><br>
+      <button type="submit">Upload</button>
+    </form>
     <button class="access-btn" onclick="toggleAccess()">ACCESS</button>
     <button class="access-btn" onclick="toggleSecurity()">SECURITY</button>
     <button class="export-btn">EXPORT</button>
@@ -32,10 +57,11 @@
       <!-- Left Panel -->
       <div class="left-panel">
         <p class="label">Compound Name</p>
-        <input type="text" class="code-line" />
+        <input type="text" id="compoundNameInput" class="code-line" autocomplete="off" />
+        <div id="compoundSuggestions" class="autocomplete-box"></div>
 
         <p class="label">Category</p>
-        <select class="dropdown">
+        <select class="dropdown" id="categoryInput">
           <option value="">--Select--</option>
           <option value="PCR">PCR</option>
           <option value="TBR">TBR</option>
@@ -43,38 +69,36 @@
           <option value="OHT">OHT</option>
           <option value="2W">2W</option>
         </select>
-        <div class="display-box">Selected Category:</div>
 
         <p class="label">Density</p>
-        <input type="text" class="code-line" placeholder="Enter Density" />
+        <input type="text" class="code-line" id="densityInput" placeholder="Enter Density" />
 
         <p class="label">Model</p>
-        <select class="dropdown">
+        <select class="dropdown" id="modelInput">
           <option value="">--Select--</option>
           <option value="Hyperplastic">Hyperplastic</option>
           <option value="Viscoplastic">Viscoplastic</option>
         </select>
-        <div class="display-box">Selected Model:</div>
 
         <p class="label">Reduced Polynomial (N)</p>
-        <select class="dropdown">
+        <select class="dropdown" id="polynomialInput">
           <option value="">--Select N--</option>
           <option value="1">C10, D1</option>
           <option value="2">C10, C20, D1, D2</option>
           <option value="3">C10, C20, C30, D1, D2, D3</option>
         </select>
 
-        <button class="submit-btn">SUBMIT</button>
+       <button class="submit-btn" onclick="submitCompound()">SUBMIT</button>
       </div>
 
       <!-- Right Panel -->
       <div class="right-panel">
         <div class="report">
           <div class="report-details">
-            <p><strong>Compound Name:</strong></p>
-            <p><strong>Category:</strong></p>
-            <p><strong>Density:</strong></p>
-            <p><strong>Model:</strong></p>
+            <p><strong>Compound Name:</strong> <span id="rCompoundName"></span></p>
+            <p><strong>Category:</strong> <span id="rCategory"></span></p>
+            <p><strong>Density:</strong> <span id="rDensity"></span></p>
+            <p><strong>Model:</strong> <span id="rModel"></span></p>
           </div>
           <div class="graph-box">
             <p class="graph-label">GRAPH</p>
@@ -85,55 +109,151 @@
     </div>
   </div>
 
-  <!-- Access Form -->
+  <!-- Access & Security -->
   <div class="access-container" id="accessContainer">
     <form action="{{ url_for('add_admin') }}" method="POST">
       <p class="label">User Email ID</p>
-      <input type="email" name="email" class="code-line" placeholder="Enter Email (e.g. name@apollotyres.com)" required pattern="^[a-zA-Z0-9._%+-]+@apollotyres\.com$" />
-
+      <input type="email" name="email" class="code-line" placeholder="name@apollotyres.com" required pattern="^[a-zA-Z0-9._%+-]+@apollotyres\.com$" />
       <p class="label">Password</p>
       <input type="password" name="password" class="code-line" placeholder="Enter Password" required />
-
       <button type="submit" class="submit-btn">SUBMIT</button>
     </form>
   </div>
 
-  <!-- Security Update Form -->
   <div class="access-container" id="securityContainer">
     <form action="{{ url_for('admin_security_update') }}" method="POST">
       <p class="label">New Registration Passcode</p>
       <input type="text" name="new_passcode" class="code-line" placeholder="Enter new passcode" required />
-
       <hr style="margin: 20px 0; border-color: #777;" />
-
       <p class="label">Current Password</p>
       <input type="password" name="current_password" class="code-line" placeholder="Enter current password" required />
-
       <p class="label">New Password</p>
       <input type="password" name="new_password" class="code-line" placeholder="Enter new password" required />
-
       <p class="label">Confirm New Password</p>
       <input type="password" name="confirm_password" class="code-line" placeholder="Re-enter new password" required />
-
       <button type="submit" class="submit-btn">UPDATE SECURITY</button>
     </form>
   </div>
 
+  <!-- Scripts -->
   <script>
-    function toggleAccess() {
-      const container = document.getElementById('accessContainer');
-      container.style.display = container.style.display === 'none' || container.style.display === '' ? 'block' : 'none';
+  function toggleAccess() {
+    document.getElementById('accessContainer').classList.toggle('show');
+  }
+
+  function toggleSecurity() {
+    document.getElementById('securityContainer').classList.toggle('show');
+  }
+
+  function toggleHamburgerMenu() {
+    document.getElementById('sideMenu').classList.toggle('active');
+  }
+
+  // Autocomplete for compound name
+  document.getElementById("compoundNameInput").addEventListener("input", function () {
+    const query = this.value;
+    const suggestionBox = document.getElementById("compoundSuggestions");
+
+    if (query.length < 1) {
+      suggestionBox.innerHTML = "";
+      return;
     }
 
-    function toggleSecurity() {
-      const container = document.getElementById('securityContainer');
-      container.style.display = container.style.display === 'none' || container.style.display === '' ? 'block' : 'none';
+    fetch(`/compound_suggestions?q=${query}`)
+      .then(res => res.json())
+      .then(data => {
+        suggestionBox.innerHTML = "";
+        data.forEach(item => {
+          const div = document.createElement("div");
+          div.textContent = item;
+          div.onclick = () => {
+            document.getElementById("compoundNameInput").value = item;
+            suggestionBox.innerHTML = "";
+            autoFillDensity(); // Auto-fill density after selection
+          };
+          suggestionBox.appendChild(div);
+        });
+      });
+  });
+
+  // Auto-fill density when compound and category are both selected
+  function autoFillDensity() {
+    const name = document.getElementById("compoundNameInput").value;
+    const category = document.getElementById("categoryInput").value;
+
+    if (name && category) {
+      fetch(`/compound_density?name=${encodeURIComponent(name)}&category=${encodeURIComponent(category)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.density) {
+            document.getElementById("densityInput").value = data.density;
+          }
+        })
+        .catch(err => {
+          console.error("Density fetch error:", err);
+        });
+    }
+  }
+
+  // Auto-trigger density fill on category change
+  document.getElementById("categoryInput").addEventListener("change", autoFillDensity);
+
+  // On SUBMIT: fetch and display full data on right panel
+  function submitCompound() {
+    const name = document.getElementById("compoundNameInput").value;
+    const category = document.getElementById("categoryInput").value;
+    const model = document.getElementById("modelInput").value;
+    const polynomial = document.getElementById("polynomialInput").value;
+
+    if (!name || !category || !model || !polynomial) {
+      alert("Please fill all fields before submitting.");
+      return;
     }
 
-    function toggleHamburgerMenu() {
-      const menu = document.getElementById('sideMenu');
-      menu.classList.toggle('active');
-    }
-  </script>
+    fetch("/compound_full_data", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        compound_name: name,
+        category: category,
+        model: model,
+        reduced_polynomial: polynomial
+      })
+    })
+    .then(res => {
+      if (!res.ok) {
+        throw new Error("Compound data not found.");
+      }
+      return res.json();
+    })
+    .then(data => {
+      // Update right panel
+      document.getElementById("rCompoundName").textContent = data.compound_name || "";
+      document.getElementById("rCategory").textContent = data.category || "";
+      document.getElementById("rDensity").textContent = data.density || "";
+      document.getElementById("rModel").textContent = data.model || "";
+
+      // Optional: update left density input again if empty
+      const densityInput = document.getElementById("densityInput");
+      if (!densityInput.value && data.density) {
+        densityInput.value = data.density;
+      }
+    })
+    .catch(err => {
+      console.error("Submit Error:", err);
+      alert("Failed to fetch compound details.");
+    });
+    console.log("Density fetch response:", data);
+
+if (data && data.density) {
+  document.getElementById("densityInput").value = data.density;
+} else {
+  console.warn("No density found for the given compound and category.");
+}
+
+  }
+</script>
 </body>
 </html>
