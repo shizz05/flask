@@ -263,3 +263,21 @@ select.dropdown option {
   background-color: #1a1a1a;
   color: #ffffff;
 }
+.access-container.show {
+  display: block;
+}
+.flash-container {
+  margin: 10px 0;
+}
+.flash.error {
+  background-color: #a00;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+}
+.flash.success {
+  background-color: #0a0;
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+}

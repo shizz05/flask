@@ -394,21 +394,20 @@ def user_reset_password(token):
 
 @app.route('/upload_inc_file', methods=['POST'])
 def upload_inc_file():
+    from werkzeug.utils import secure_filename
+    import re
+
     if 'admin_email' not in session:
         flash("Unauthorized access", "error")
         return redirect(url_for('admin_login'))
 
-    if 'inc_file' not in request.files:
-        flash("No file part", "error")
-        return redirect(url_for('admin_panel'))
-
-    file = request.files['inc_file']
-    if file.filename == '':
-        flash("No selected file", "error")
+    file = request.files.get('inc_file')
+    if not file or file.filename == '':
+        flash("No file selected.", "error")
         return redirect(url_for('admin_panel'))
 
     if not file.filename.endswith('.inc'):
-        flash("Only .inc files are allowed", "error")
+        flash("Only .inc files allowed.", "error")
         return redirect(url_for('admin_panel'))
 
     filename = secure_filename(file.filename)
@@ -416,68 +415,98 @@ def upload_inc_file():
     os.makedirs('uploads', exist_ok=True)
     file.save(filepath)
 
+    errors = []
+    success_count = 0
+
     try:
         with open(filepath, 'r') as f:
-            lines = [line.strip() for line in f if line.strip()]
-
+            lines = [line.rstrip() for line in f if line.strip()]
         conn = get_db_connection()
         cur = conn.cursor()
 
         category = ""
-        compound_name = ""
-        density = ""
-        model = ""
-        reduced_poly = ""
-
         i = 0
+
         while i < len(lines):
             line = lines[i]
+            line_num = i + 1
 
-            # Capture Category from comment headings
-            if line.startswith("**"):
-                category = line.replace("*", "").strip()
-                i += 1
-                continue
+            if line.startswith("**") and "_MATERIALS" in line.upper():
+               category = line.replace("*", "").strip()
+               category = category.replace("_MATERIALS", "").strip()
 
-            # Start of new compound
-            if line.startswith("*MATERIAL") and "NAME=" in line.upper():
-                compound_name = line.split("NAME=")[-1].strip()
-                density = ""
-                model = ""
-                reduced_poly = ""
-
-                i += 1
-                while i < len(lines):
-                    subline = lines[i]
-
-                    if subline.startswith("*MATERIAL"):  # new material starts
-                        i -= 1
-                        break
-                    if subline.startswith("*DENSITY"):
-                        i += 1
-                        density = lines[i].replace(",", "")
-                    elif subline.startswith("*HYPERELASTIC"):
-                        model = "HYPERELASTIC"
-                        i += 1
-                        reduced_poly = lines[i].replace(",", "")
+            elif line.upper().startswith("*MATERIAL") and "NAME=" in line.upper():
+                try:
+                    compound_name = re.search(r"NAME=([\w\d_]+)", line.upper()).group(1)
+                except Exception:
+                    errors.append(f"Line {line_num}: Invalid MATERIAL line format.")
                     i += 1
+                    continue
 
-                # Insert into DB if valid
-                if compound_name and density and model and reduced_poly:
+                # DENSITY
+                i += 1
+                if i >= len(lines) or not lines[i].strip().upper().startswith("*DENSITY"):
+                    errors.append(f"Line {i+1}: Expected '*DENSITY' line after MATERIAL.")
+                    continue
+
+                i += 1
+                if i >= len(lines):
+                    errors.append(f"Line {i+1}: Missing density value after '*DENSITY'.")
+                    continue
+
+                density = lines[i].strip().replace(",", "")
+                if not re.match(r"^[\d.eE+-]+$", density):
+                    errors.append(f"Line {i+1}: Invalid density value '{density}'")
+                    continue
+
+                # MODEL
+                i += 1
+                if i >= len(lines):
+                    errors.append(f"Line {i+1}: Missing model line after density.")
+                    continue
+
+                model_line = lines[i].strip().upper()
+                if not model_line.startswith("*HYEPERELASTIC"):
+                    errors.append(f"Line {i+1}: Unsupported model '{lines[i]}'. Only '*HYEPERELASTIC' is supported.")
+                    continue
+
+                model = "HYPERELASTIC"
+
+                i += 1
+                if i >= len(lines):
+                    errors.append(f"Line {i+1}: Missing reduced polynomial after model.")
+                    continue
+
+                reduced_poly = lines[i].strip().replace(",", "")
+                if not re.match(r"^[\d.eE+,\s-]+$", reduced_poly):
+                    errors.append(f"Line {i+1}: Invalid reduced polynomial values.")
+                    continue
+
+                # Insert into DB
+                try:
                     cur.execute("""
                         INSERT INTO compounds (compound_name, category, density, model, reduced_polynomial)
                         VALUES (%s, %s, %s, %s, %s)
                     """, (compound_name, category, density, model, reduced_poly))
+                    success_count += 1
+                except Exception as db_error:
+                    errors.append(f"Line {line_num}: DB insert failed for '{compound_name}': {str(db_error)}")
 
             i += 1
 
         conn.commit()
         cur.close()
         conn.close()
-        flash("File uploaded and compound data saved.", "success")
 
     except Exception as e:
-        flash(f"Failed to process file: {str(e)}", "error")
+        errors.append(f"General error: {str(e)}")
+
+    if errors:
+        for err in errors:
+            flash(err, "error")
+        flash(f"⚠️ {len(errors)} error(s) found. {success_count} compounds inserted.", "error")
+    else:
+        flash(f"✅ File uploaded successfully. {success_count} compounds inserted.", "success")
 
     return redirect(url_for('admin_panel'))
 @app.route('/compound_suggestions')
@@ -553,6 +582,86 @@ def compound_full_data():
         })
     else:
         return jsonify({"error": "Compound not found"}), 404
+        # -- Import necessary modules
+import matplotlib.pyplot as plt
+import io
+import base64
+
+# Function to generate a graph image for Reduced Polynomial data
+def generate_reduced_polynomial_graph(coefficients):
+    """
+    coefficients: list of floats (length 2N, eg: C10, C20..., D1, D2...)
+    Returns: base64 image string
+    """
+    N = len(coefficients) // 2
+    C = coefficients[:N]
+    D = coefficients[N:]
+
+    strain = [i * 0.1 for i in range(21)]  # 0 to 2 in 0.1 steps
+    stress = []
+
+    for e in strain:
+        W = 0
+        for i in range(N):
+            W += C[i] * (e ** (2 * (i + 1)))
+        for j in range(N):
+            W += D[j] * e
+        stress.append(W)
+
+    # Plotting
+    fig, ax = plt.subplots()
+    ax.plot(strain, stress, label='Reduced Polynomial Fit', marker='o', color='cyan')
+    ax.set_title('Reduced Polynomial Graph')
+    ax.set_xlabel('Strain')
+    ax.set_ylabel('Stress')
+    ax.grid(True)
+    ax.legend()
+
+    # Save plot to base64
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', bbox_inches='tight', facecolor='black')
+    plt.close(fig)
+    buf.seek(0)
+    graph_url = base64.b64encode(buf.read()).decode('utf-8')
+    return f"data:image/png;base64,{graph_url}"
+
+# Example usage
+coeffs = [0.7, -0.1, 0.04, 0.03, 0, 0]  # Sample Reduced Polynomial (N=3)
+graph_image_url = generate_reduced_polynomial_graph(coeffs)
+
+# You can now embed `graph_image_url` in an <img src="..."> tag in your Flask template
+@app.route('/generate_graph')
+def generate_graph():
+    import matplotlib.pyplot as plt
+    import io
+    from flask import send_file, request
+
+    name = request.args.get('name')
+    category = request.args.get('category')
+    model = request.args.get('model')
+    reduced_poly = request.args.get('reduced_poly')
+
+    try:
+        points = [float(p.strip()) for p in reduced_poly.split(',')]
+        x = list(range(1, len(points) + 1))
+        y = points
+
+        fig, ax = plt.subplots()
+        ax.plot(x, y, marker='o')
+        ax.set_title(f"{name} - {category} - {model}")
+        ax.set_xlabel("Coefficient Index")
+        ax.set_ylabel("Value")
+        ax.grid(True)
+
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+        plt.close(fig)
+
+        return send_file(buf, mimetype='image/png')
+    except Exception as e:
+        return f"Error generating graph: {e}", 500
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

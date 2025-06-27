@@ -42,10 +42,10 @@
     <button class="update-btn">UPDATE</button>
     <button class="delete-btn">DELETE</button>
     <form action="{{ url_for('upload_inc_file') }}" method="POST" enctype="multipart/form-data" style="margin-top: 20px;">
-      <label for="inc_file"><strong>UPLOAD</strong></label><br>
       <input type="file" id="inc_file" name="inc_file" accept=".inc" required><br><br>
-      <button type="submit">Upload</button>
+      <button type="submit">UPLOAD</button>
     </form>
+    <button type="submit">UPLOAD</button>
     <button class="access-btn" onclick="toggleAccess()">ACCESS</button>
     <button class="access-btn" onclick="toggleSecurity()">SECURITY</button>
     <button class="export-btn">EXPORT</button>
@@ -102,7 +102,10 @@
           </div>
           <div class="graph-box">
             <p class="graph-label">GRAPH</p>
-            <div class="graph-placeholder">[Graph Area]</div>
+            <div class="graph-placeholder">
+  <img id="polyGraph" src="" alt="Graph will appear here" style="max-width: 100%; display: none;" />
+</div>
+
           </div>
         </div>
       </div>
@@ -134,7 +137,16 @@
       <button type="submit" class="submit-btn">UPDATE SECURITY</button>
     </form>
   </div>
-
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-container">
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+<img id="polyGraph" src="" alt="Graph" />
   <!-- Scripts -->
   <script>
   function toggleAccess() {
@@ -234,7 +246,6 @@
       document.getElementById("rCategory").textContent = data.category || "";
       document.getElementById("rDensity").textContent = data.density || "";
       document.getElementById("rModel").textContent = data.model || "";
-
       // Optional: update left density input again if empty
       const densityInput = document.getElementById("densityInput");
       if (!densityInput.value && data.density) {
@@ -252,6 +263,7 @@ if (data && data.density) {
 } else {
   console.warn("No density found for the given compound and category.");
 }
+
 
   }
 </script>
