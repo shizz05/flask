@@ -17,9 +17,9 @@ body {
 .bg-overlay {
   background-image: url('../images/img2.png');
   background-size: contain;
-  background-position: bottom;
+  background-position: center bottom -80px;  /* pushed down */
   background-repeat: no-repeat;
-  opacity: 0.1;
+  opacity: 0.15;
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -33,22 +33,23 @@ body {
 }
 
 .header h1 {
-  font-size: 32px;
+  font-size: 50px;
   font-weight: bold;
-  text-decoration: underline;
+  letter-spacing: 2px;
+  color: #000528;
+  text-decoration: none;
 }
 
 .panel-container {
-  margin: 30px auto;
-  padding: 30px 20px;
+  margin: 30px 20px;
+  padding: 30px;
   border: 1px solid #9aa9bf;
-  background-color: rgba(0, 0, 0, 0.9);
+  background-color: #000528;  
   border-radius: 12px;
-  color: white;
+  color: #ffffff;
   position: relative;
   z-index: 1;
-  max-width: 1100px;
-  width: 95%;
+  margin-bottom: 200px;
 }
 
 .menu {
@@ -61,16 +62,17 @@ body {
 
 .menu button {
   border: 1px dashed #ffffff;
-  padding: 5px 12px;
+  padding: 8px 14px;
   background: transparent;
   color: white;
   cursor: pointer;
+  border-radius: 6px;
 }
 
 .main-content {
   display: flex;
   flex-wrap: wrap;
-  gap: 40px;
+  gap: 30px;
 }
 
 .left-panel {
@@ -97,13 +99,13 @@ body {
   font-size: 16px;
   background: transparent;
   border: 1px solid #ffffff;
-  color: white;
+  color: #ffffff;
   margin-bottom: 15px;
   border-radius: 4px;
 }
 
 .dropdown option {
-  color: black;
+  color: #000528;
 }
 
 .display-box {
@@ -111,7 +113,7 @@ body {
   padding: 8px;
   font-size: 14px;
   margin-bottom: 20px;
-  background: rgba(255, 255, 255, 0.05);
+  background: #000528;
   border-radius: 6px;
 }
 
@@ -121,50 +123,43 @@ body {
   font-size: 14px;
   border: 1px dashed #ffffff;
   background: transparent;
-  color: white;
+  color: #ffffff;
   cursor: pointer;
+  width: 100%;
+  border-radius: 4px;
 }
 
 .report {
   border: 1px solid #ffffff;
   padding: 20px;
   font-size: 16px;
-  background: rgba(255, 255, 255, 0.05);
+  background: #000528;
   border-radius: 10px;
   color: white;
   width: 100%;
-}
-
-.report-heading {
-  font-size: 24px;
-  padding-bottom: 10px;
-  text-align: center;
-}
-
-.report-inner {
+  min-height: 400px;
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.report-details {
-  font-size: 16px;
+.report-details p {
+  margin: 5px 0;
 }
 
 .graph-box {
   width: 100%;
-  max-width: 400px;
   height: 300px;
   border: 1px dashed white;
+  background: #000528;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  color: white;
+  font-style: italic;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  color: white;
-  font-size: 14px;
-  margin: 0 auto;
-  text-align: center;
 }
 
 /* Responsive Breakpoints */
@@ -179,8 +174,8 @@ body {
     max-width: 50%;
   }
 
-  .report-inner {
-    flex-direction: row;
+  .report {
+    flex-direction: column;
     justify-content: space-between;
   }
 
@@ -188,3 +183,42 @@ body {
     height: 400px;
   }
 }
+/* Dropdown styling */
+select.dropdown {
+  background-color: #000528;
+  color: white;
+  border: 1px solid #444;
+  padding: 8px;
+  border-radius: 5px;
+  width: 100%;
+}
+
+select.dropdown option {
+  background-color: #000528;
+  color: white;
+}
+
+/* Suggestion box styling */
+.suggestion-box {
+  position: absolute;
+  background-color: #000528;
+  border: 1px solid #999;
+  z-index: 10;
+  width: 40%;
+  max-height: 100px;
+  overflow-y: auto;
+  color: white;
+}
+
+.suggestion-box div {
+  padding: 6px;
+  cursor: pointer;
+  color: white;
+}
+
+.suggestion-box div:hover {
+  background-color: #999;
+  color: #000528;
+}
+
+

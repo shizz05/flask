@@ -1,15 +1,15 @@
 **PCR_MATERIALS
-*MATERIAL, name=BEADSTEEL
+*MATERIAL, name=BEAD_STEEL
 *DENSITY
-7.8E-9,
-*HYPERELASTIC
-2.1e5,0.3
+7.8E-7,
+*HYPERELASTIC, REDUCEDPOLYNOMIAL, N = 3
+0.6274, -0.067736, 0.03997, 0.072139, 0, 0
 ************************************************************************************
-*MATERIAL, name=BEADMS
+*MATERIAL, name=BEAD_MS
 *DENSITY
 7.8E-9,
-*HYPERELASTIC
-2.1e5,0.3
+*HYPERELASTIC, REDUCEDPOLYNOMIAL, N = 3
+0.6165, -0.065735, 0.03498, 0.032139, 0, 0
 ************************************************************************************
 *MATERIAL, NAME=ST418
 *DENSITY
@@ -23,13 +23,13 @@
 *HYPERELASTIC, REDUCEDPOLYNOMIAL, N = 3
 0.70104, -0.10066, 0.041351, 0.028721, 0, 0
 ************************************************************************************
-*MATERIAL, NAME=ST362
+*MATERIAL, NAME=ST363
 *DENSITY
 1.208E-09,
 *HYPERELASTIC, REDUCEDPOLYNOMIAL, N = 3
 0.6846, -0.095907, 0.042051, 0.029410, 0, 0
 ************************************************************************************
-*MATERIAL, NAME=L14
+*MATERIAL, NAME=L15
 *DENSITY
 1.161E-09,
 *HYPERELASTIC, REDUCEDPOLYNOMIAL, N = 3
@@ -39,7 +39,7 @@
 *DENSITY
 1.140E-09,
 *HYPERELASTIC, REDUCEDPOLYNOMIAL, N = 3
-1.0972, -0.18781, 0.067026, 0.018351, 0, 0
+1.0972, -0.18782, 0.067026, 0.018351, 0, 0
 ****************************************************************
 *MATERIAL, NAME=A268
 *DENSITY

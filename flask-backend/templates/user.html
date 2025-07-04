@@ -15,17 +15,19 @@
 
   <div class="panel-container">
     <div class="menu">
-      <button class="export-btn">EXPORT</button>
+      <button class="export-btn" onclick="exportCompound()">EXPORT</button>
     </div>
 
     <div class="main-content">
       <!-- Left Panel -->
       <div class="left-panel">
         <p class="label">Compound Name</p>
-        <input type="text" class="code-line" />
+        <input type="text" class="code-line" id="compoundNameInput" autocomplete="off" />
+        <div id="compoundSuggestions" class="suggestion-box"></div>
+
 
         <p class="label">Category</p>
-        <select class="dropdown">
+        <select class="dropdown" id="categoryInput">
           <option value="">--Select--</option>
           <option value="PCR">PCR</option>
           <option value="TBR">TBR</option>
@@ -33,46 +35,181 @@
           <option value="OHT">OHT</option>
           <option value="2W">2W</option>
         </select>
-        <div class="display-box">Selected Category:</div>
 
         <p class="label">Density</p>
-        <input type="text" class="code-line" placeholder="Enter Density" />
+        <input type="text" class="code-line" id="densityInput" placeholder="Auto-filled" readonly />
 
         <p class="label">Model</p>
-        <select class="dropdown">
+        <select class="dropdown" id="modelInput">
           <option value="">--Select--</option>
-          <option value="Hyperplastic">Hyperplastic</option>
-          <option value="Viscoplastic">Viscoplastic</option>
+          <option value="Hyperelastic">Hyperelastic</option>
+          <option value="Viscoelastic">Viscoelastic</option>
         </select>
-        <div class="display-box">Selected Model:</div>
 
         <p class="label">Reduced Polynomial (N)</p>
-        <select class="dropdown">
-          <option value="">--Select N--</option>
+        <select class="dropdown" id="polynomialDropdown">
+          <option value="">--Select--</option>
           <option value="1">C10, D1</option>
           <option value="2">C10, C20, D1, D2</option>
           <option value="3">C10, C20, C30, D1, D2, D3</option>
         </select>
 
-        <button class="submit-btn">SUBMIT</button>
+        <button class="submit-btn" onclick="submitCompound()">SUBMIT</button>
+
+        <div id="selectedCompounds" style="margin-top: 15px;"></div>
       </div>
 
       <!-- Right Panel -->
       <div class="right-panel">
         <div class="report">
-          <div class="report-heading">Report</div>
-          <div class="report-inner">
-            <div class="report-details">
-              <p><strong>Compound Name:</strong></p>
-              <p><strong>Category:</strong></p>
-              <p><strong>Density:</strong></p>
-              <p><strong>Model:</strong></p>
-            </div>
-            <div class="graph-box">GRAPH</div>
+          <div class="report-details">
+            <p><strong>Compound Name:</strong> <span id="rCompoundName"></span></p>
+            <p><strong>Category:</strong> <span id="rCategory"></span></p>
+            <p><strong>Density:</strong> <span id="rDensity"></span></p>
+            <p><strong>Model:</strong> <span id="rModel"></span></p>
+            <p><strong>Reduced Polynomial:</strong> <span id="rReducedPolynominal"></span></p>
           </div>
+          <div class="graph-box">GRAPH</div>
         </div>
       </div>
     </div>
   </div>
+
+  <script>
+    // Auto-fill density when both name and category are selected
+    function autoFillDensity() {
+      const name = document.getElementById("compoundNameInput").value.trim();
+      const category = document.getElementById("categoryInput").value.trim();
+
+      if (name && category) {
+        fetch(`/compound_density?name=${encodeURIComponent(name)}&category=${encodeURIComponent(category)}`)
+          .then(res => res.json())
+          .then(data => {
+            document.getElementById("densityInput").value = data.density || "";
+          })
+          .catch(err => {
+            console.error("Density fetch error:", err);
+          });
+      }
+    }
+    document.getElementById("compoundNameInput").addEventListener("input", function () {
+  const query = this.value;
+  const suggestionBox = document.getElementById("compoundSuggestions");
+
+  if (query.length < 1) {
+    suggestionBox.innerHTML = "";
+    return;
+  }
+
+  fetch(`/compound_suggestions?q=${encodeURIComponent(query)}`)
+    .then(res => res.json())
+    .then(data => {
+      suggestionBox.innerHTML = "";
+      data.forEach(name => {
+        const div = document.createElement("div");
+        div.textContent = name;
+        div.onclick = () => {
+          document.getElementById("compoundNameInput").value = name;
+          suggestionBox.innerHTML = "";
+          autoFillDensity();
+        };
+        suggestionBox.appendChild(div);
+      });
+    });
+});
+
+    document.getElementById("compoundNameInput").addEventListener("input", autoFillDensity);
+    document.getElementById("categoryInput").addEventListener("change", autoFillDensity);
+
+    function submitCompound() {
+  const name = document.getElementById("compoundNameInput").value.trim();
+  const category = document.getElementById("categoryInput").value.trim();
+  const model = document.getElementById("modelInput").value.trim().toUpperCase();
+  const nValue = document.getElementById("polynomialDropdown").value;
+
+  if (!name || !category || !model || !nValue) {
+    alert("Please fill all fields.");
+    return;
+  }
+
+  fetch("/user_compound_full_data", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      compound_name: name,
+      category: category,
+      model: model,
+      n: nValue
+    })
+  })
+    .then(res => {
+      if (!res.ok) throw new Error("Compound data not found.");
+      return res.json();
+    })
+    .then(data => {
+      document.getElementById("rCompoundName").textContent = data.compound_name;
+      document.getElementById("rCategory").textContent = data.category;
+      document.getElementById("rDensity").textContent = data.density;
+      document.getElementById("rModel").textContent = data.model;
+      document.getElementById("rReducedPolynominal").textContent = data.reduced_polynomial;
+      document.getElementById("densityInput").value = data.density;
+
+      const compoundId = `cb-${data.compound_name}-${data.category}-${data.model}`;
+      if (!document.getElementById(compoundId)) {
+        const label = document.createElement("label");
+        label.style.marginRight = "12px";
+        label.innerHTML = `
+          <input type="checkbox" id="${compoundId}" checked
+            data-name="${data.compound_name}"
+            data-category="${data.category}"
+            data-model="${data.model}">
+          ${data.compound_name}`;
+        document.getElementById("selectedCompounds").appendChild(label);
+      }
+    })
+    .catch(err => {
+      console.error("Error:", err);
+      alert("Failed to fetch compound details for the selected N value.");
+    });
+}
+
+
+    function exportCompound() {
+      const checkboxes = document.querySelectorAll("#selectedCompounds input[type='checkbox']:checked");
+      if (checkboxes.length === 0) {
+        alert("Please select at least one compound.");
+        return;
+      }
+
+      const payload = Array.from(checkboxes).map(cb => ({
+        compound_name: cb.dataset.name,
+        category: cb.dataset.category,
+        model: cb.dataset.model
+      }));
+
+      fetch("/user_export_multiple_compounds", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ compounds: payload })
+      })
+        .then(response => {
+          if (!response.ok) throw new Error("Export failed");
+          return response.blob();
+        })
+        .then(blob => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "user_compounds.inc";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+        })
+        .catch(err => {
+          console.error("Export error:", err);
+          alert("Export failed.");
+        });
+    }
+  </script>
 </body>
 </html>

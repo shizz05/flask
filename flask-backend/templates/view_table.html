@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ table_name | capitalize }} Table</title>
+    <style>
+        body { background-color: #000528; color: #fff; font-family: Arial; padding: 20px; }
+        h2 { color: #ffffff; }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #b7f3ff;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #5e718a;
+        }
+        td {
+            background-color: #402f52;
+        }
+    </style>
+</head>
+<body>
+    <h2>{{ table_name | replace("_", " ") | title }} Table</h2>
+
+    {% if rows %}
+    <table>
+        <thead>
+            <tr>
+                {% for col in columns %}
+                <th>{{ col }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                {% for val in row %}
+                <td>{{ val }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No data available in table: <strong>{{ table_name }}</strong></p>
+    {% endif %}
+</body>
+</html>
