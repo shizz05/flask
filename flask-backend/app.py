@@ -19,6 +19,8 @@ app.secret_key = "Apollo$ecureTyrePlatform@2025"
 
 # ------------------------ PostgreSQL Connection ------------------------
 from urllib import parse as urlparse
+import os
+import psycopg2
 
 
 def get_db_connection():
