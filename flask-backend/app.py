@@ -25,11 +25,7 @@ import psycopg2
 
 def get_db_connection():
     urlparse.uses_netloc.append("postgres")
-    db_url = urlparse.urlparse(
-        os.environ[
-            "postgresql://flask_db_xaju_user:XeEDCYtCMifQ0sjvZjiXZO8W3iiBHstI@dpg-d1ljqere5dus73fpktu0-a/flask_db_xaju"
-        ]
-    )
+    db_url = urlparse.urlparse(os.environ["DB_URL"])
 
     return psycopg2.connect(
         dbname=db_url.path[1:],
