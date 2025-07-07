@@ -20,12 +20,14 @@ app.secret_key = "Apollo$ecureTyrePlatform@2025"
 # ------------------------ PostgreSQL Connection ------------------------
 from urllib import parse as urlparse
 
-DATABASE_URL = "postgresql://flask_db_xaju_user:XeEDCYtCMifQ0sjvZjiXZO8W3iiBHstI@dpg-d1ljqere5dus73fpktu0-a/flask_db_xaju"
-
 
 def get_db_connection():
     urlparse.uses_netloc.append("postgres")
-    db_url = urlparse.urlparse(DATABASE_URL)
+    db_url = urlparse.urlparse(
+        os.environ[
+            "postgresql://flask_db_xaju_user:XeEDCYtCMifQ0sjvZjiXZO8W3iiBHstI@dpg-d1ljqere5dus73fpktu0-a/flask_db_xaju"
+        ]
+    )
 
     return psycopg2.connect(
         dbname=db_url.path[1:],
